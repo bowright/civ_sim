@@ -28,6 +28,7 @@ Rule 14. Civ only invades other civs less than or equal to its level
 
 import sys
 import pdb
+import time
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -36,14 +37,14 @@ import matplotlib.pyplot as plt
 
 war_on = 1
 civ_grow_rate = 0.01
-civ_grow_model = 2
+civ_grow_model = 2  # growth model see def grow
 
         
 class Civ(object):
     """ generic civilization class"""
     
     # Universe parameters
-    uni_r = 100     # Radius of the universe
+    uni_r = 50      # Radius of the universe
     uni_yr = 1000   # universe evolution years
     uni_age = 0     # Current age of universe
     uni_matter = 10**8     # free resources of the universe
@@ -162,8 +163,8 @@ def war(invader):
     # outcome of the war is random but proportional to parties' resource
     print(invader.name + " invades " + defender.name)
     if random.random() > invader.rsc/(invader.rsc+defender.rsc):
-        print('invader:\n', invader)
-        print('invader serial:', str(invader.serial))
+        # print('invader:\n', invader)
+        # print('invader serial:', str(invader.serial))
         # key_inv = Civ.civs_live.keys()[Civ.civs_live.values().index(invader)]
         key_inv = invader.serial
         invader.die(defender)
@@ -191,6 +192,8 @@ def main():
         # append number of living civs
         civ_hist[t] = len(Civ.civs_live)
         rsc_hist[t] = sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()) / (sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()) + Civ.uni_matter)
+
+        # time.sleep(0.1)
         
     print("\n\nThis Universe Simulation Ends.\n")
     print(str(len(Civ.civs_live)) + " civ survived in the universe. " + str(Civ.civs_born) + " born. " + str(Civ.civs_died) + " perished.")
@@ -209,11 +212,13 @@ def main():
     # plot civ number history
     plt.figure()
     # plt.fill_between(civ_hist.keys(), 0, civ_hist.values(), facecolor="r")
+    plt.plot(civ_hist.keys(), civ_hist.values())
     plt.title("Historical number of civilizations")
     
     # plot resources used by civilizations    
     plt.figure()
     # plt.fill_between(rsc_hist.keys(), 0, rsc_hist.values(), facecolor="g")
+    plt.plot(rsc_hist.keys(), rsc_hist.values())
     plt.title("Resources utilization by civilizations")
     
     plt.show()
