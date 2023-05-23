@@ -66,10 +66,11 @@ class Civ(object):
         self.dob = 0    # date of birth
         self.tech = 0   # level of technology
         
-        Civ.civs_serial += 1
+        self.serial = Civ.civs_serial   # serial of civ object
+        Civ.civs_serial += 1            # increment serial after assign to object
         Civ.civs_born += 1
         Civ.uni_matter -= self.rsc
-        self.name = "civ #" + `Civ.civs_serial`
+        self.name = "civ #" + str(Civ.civs_serial)
         
     def grow(self):
         # grow by using free matter in the universe
@@ -98,7 +99,8 @@ class Civ(object):
             Civ.uni_matter += self.rsc
         
         # remove from live civs
-        Civ.civs_live.pop(Civ.civs_live.keys()[Civ.civs_live.values().index(self)])
+        # Civ.civs_live.pop(Civ.civs_live.keys()[Civ.civs_live.values().index(self)])
+        Civ.civs_live.pop(self.serial)
         del self
     
 
@@ -109,14 +111,16 @@ def random_born():
         Civ.civs_live[k] = Civ()
         Civ.civs_live[k].dob = Civ.uni_age
         Civ.civs_live[k].logevity = 100 * Civ.uni_yr * np.random.rand()
-        print(Civ.civs_live[k].name + " is born in year " + `Civ.uni_age` + ".")
+        print(Civ.civs_live[k].name + " is born in year " + str(Civ.uni_age) + ".")
         
 def uni_grow():
     # university grows
     if len(Civ.civs_live)>0:
         key_dead = []
-        for i in Civ.civs_live.keys():
+        ls_civs_live = list(Civ.civs_live.keys())
+        for i in ls_civs_live:
             # skip if civ killed
+            # print('key_dead:', key_dead)
             if i in key_dead:
                 continue
             
@@ -132,7 +136,7 @@ def uni_grow():
             # if civ has more rsc more likely to invade
             if war_on==1:
                 if civ.p_agg > random.random():
-                    key_loser = war(civ)
+                    key_loser = war(invader=civ)
                     key_dead.append(key_loser)
                 
     Civ.uni_age += 1
@@ -140,7 +144,7 @@ def uni_grow():
 
 def war(invader):
     # invader choose civs with less but comparable civs to invade
-    key_def = random.choice(Civ.civs_live.keys())
+    key_def = random.choice(list(Civ.civs_live.keys()))
     defender = Civ.civs_live[key_def]
     all_keys = Civ.civs_live.keys()
     
@@ -149,7 +153,7 @@ def war(invader):
         all_keys.remove(key_def)
         defender = Civ.civs_live[key_def]
         
-    if (all_keys<1) | (invader.name == defender.name):
+    if (len(all_keys)<1) | (invader.name == defender.name):
         return None
     
     # war happens
@@ -158,7 +162,10 @@ def war(invader):
     # outcome of the war is random but proportional to parties' resource
     print(invader.name + " invades " + defender.name)
     if random.random() > invader.rsc/(invader.rsc+defender.rsc):
-        key_inv = Civ.civs_live.keys()[Civ.civs_live.values().index(invader)]
+        print('invader:\n', invader)
+        print('invader serial:', str(invader.serial))
+        # key_inv = Civ.civs_live.keys()[Civ.civs_live.values().index(invader)]
+        key_inv = invader.serial
         invader.die(defender)
         return key_inv
     else:
@@ -173,7 +180,7 @@ def main():
     rsc_hist = {}
     # time lapse
     for t in range(Civ.uni_yr):  
-        print("\nUniverse year: " + `t`)
+        print("\nUniverse year: " + str(t))
         
         # civ born on random interval
         random_born()
@@ -186,7 +193,7 @@ def main():
         rsc_hist[t] = sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()) / (sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()) + Civ.uni_matter)
         
     print("\n\nThis Universe Simulation Ends.\n")
-    print(`len(Civ.civs_live)` + " civ survived in the universe. " + `Civ.civs_born` + " born. " + `Civ.civs_died` + " perished.")
+    print(str(len(Civ.civs_live)) + " civ survived in the universe. " + str(Civ.civs_born) + " born. " + str(Civ.civs_died) + " perished.")
     print("Free matter in the universe: " + format(Civ.uni_matter, ",.0f"))
     print("Matters utlitzed by civs: " + format(sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()), ",.0f"))
     print("Wars happened: " + format(Civ.civs_wars, ",.0f"))
@@ -201,12 +208,12 @@ def main():
     
     # plot civ number history
     plt.figure()
-    plt.fill_between(civ_hist.keys(), 0, civ_hist.values(), facecolor="r")
+    # plt.fill_between(civ_hist.keys(), 0, civ_hist.values(), facecolor="r")
     plt.title("Historical number of civilizations")
     
     # plot resources used by civilizations    
     plt.figure()
-    plt.fill_between(rsc_hist.keys(), 0, rsc_hist.values(), facecolor="g")
+    # plt.fill_between(rsc_hist.keys(), 0, rsc_hist.values(), facecolor="g")
     plt.title("Resources utilization by civilizations")
     
     plt.show()
