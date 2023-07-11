@@ -30,13 +30,14 @@ import sys
 import pdb
 import time
 import numpy as np
+import pandas as pd
 import random
 import matplotlib.pyplot as plt
 
 # Settings
 
 war_on = 1
-civ_grow_rate = 0.01
+civ_grow_rate = 0.05
 civ_grow_model = 2  # growth model see def grow
 
         
@@ -45,7 +46,7 @@ class Civ(object):
     
     # Universe parameters
     uni_r = 50      # Radius of the universe
-    uni_yr = 1000   # universe evolution years
+    uni_yr = 100   # universe evolution years
     uni_age = 0     # Current age of universe
     uni_matter = 10**8     # free resources of the universe
     
@@ -66,12 +67,13 @@ class Civ(object):
         self.age = 0
         self.dob = 0    # date of birth
         self.tech = 0   # level of technology
-        
-        self.serial = Civ.civs_serial   # serial of civ object
+        self.serial = Civ.civs_serial  # serial of civ object
+        self.name = "civ #" + str(self.serial)
+
         Civ.civs_serial += 1            # increment serial after assign to object
         Civ.civs_born += 1
         Civ.uni_matter -= self.rsc
-        self.name = "civ #" + str(Civ.civs_serial)
+
         
     def grow(self):
         # grow by using free matter in the universe
@@ -200,6 +202,10 @@ def main():
     print("Free matter in the universe: " + format(Civ.uni_matter, ",.0f"))
     print("Matters utlitzed by civs: " + format(sum(Civ.civs_live[i].rsc for i in Civ.civs_live.keys()), ",.0f"))
     print("Wars happened: " + format(Civ.civs_wars, ",.0f"))
+
+    # build the dataframe of resources with civ key number
+    df_rsc = pd.DataFrame({'serial': [Civ.civs_live[i].serial for i in Civ.civs_live.keys()], 'rsc': [Civ.civs_live[i].rsc for i in Civ.civs_live.keys()]})
+    print('Civ Rank By Resource:\n ', df_rsc.sort_values('rsc', ascending=False))
     
     # plot civ survived distribution
     n_bins = 10
